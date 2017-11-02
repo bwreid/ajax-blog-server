@@ -3,7 +3,7 @@ const app = express()
 const port = process.env.PORT || 3000
 const bodyParser = require('body-parser')
 const morgan = require('morgan')
-
+require('./db/connection')
 if (!process.env.NODE_ENV) app.use(morgan('dev'))
 
 app.use(require('cors')())
