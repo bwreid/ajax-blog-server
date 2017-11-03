@@ -4,56 +4,65 @@ const { Post } = require('../../models')
 describe('Post', function () {
   describe('#get()', function () {
     it('should return all posts', function () {
-      const actual = Post.get()
       const expected = []
-
-      expect(actual).to.deep.equal(expected)
+      return Post.get().then(actual => {
+        expect(actual).to.deep.equal(expected)
+      })
     })
   })
 
   describe('#create(body)', function () {
     it('should return all posts', function () {
-      const actual = Post.create({ title: 'xxx', content: 'yyy' })
-
-      expect(actual.id).to.be.ok
-      expect(actual.title).to.deep.equal('xxx')
-      expect(actual.content).to.deep.equal('yyy')
+      return Post.create({ title: 'xxx', content: 'yyy' }).then(actual => {
+        expect(actual.id).to.be.ok
+        expect(actual.title).to.deep.equal('xxx')
+        expect(actual.content).to.deep.equal('yyy')
+      })
     })
   })
 
   describe('#find(id)', function () {
     it('should find the specified post', function () {
-      const post = { id: 1, title: 'xxx', content: 'yyy' }
-      fs.writeFileSync(global.db, JSON.stringify([ post ]))
-      const actual = Post.find(1)
-
-      expect(actual).to.deep.equal(post)
+      const data = { title: 'xxx', content: 'yyy' }
+      return knex('posts').insert(data, '*').then(([ inserted ]) => {
+        return Post.find(inserted.id).then(post => {
+          expect(post.id).to.be.ok
+          expect(post.title).to.deep.equal(data.title)
+          expect(post.content).to.deep.equal(data.content)
+        })
+      })
     })
   })
 
   describe('#destroy', function () {
     it('should remove the specified post', function () {
-      const post = { id: 1, title: 'xxx', content: 'yyy' }
-      fs.writeFileSync(global.db, JSON.stringify([ post ]))
-      const result = Post.destroy(1)
-      const actual = JSON.parse(fs.readFileSync(global.db))
-
-      expect(result).to.deep.equal(post)
-      expect(actual.length).to.equal(0)
+      const data = { title: 'xxx', content: 'yyy' }
+      return knex('posts').insert(data, '*').then(([ inserted ]) => {
+        return Post.destroy(inserted.id).then(post => {
+          return knex('posts').then(actual => {
+            expect(post.id).to.be.ok
+            expect(post.title).to.deep.equal(data.title)
+            expect(post.content).to.deep.equal(data.content)
+            expect(actual.length).to.equal(0)
+          })
+        })
+      })
     })
   })
 
   describe('#patch', function () {
     it('should patch an existing record', function () {
-      const post = { id: 1, title: 'xxx', content: 'yyy' }
-      fs.writeFileSync(global.db, JSON.stringify([ post ]))
-      const patch = { title: 'zzz' }
-      const result = Post.patch(1, patch)
-      const actual = JSON.parse(fs.readFileSync(global.db))
-      const expected = Object.assign(post, patch)
-
-      expect(result).to.deep.equal(expected)
-      expect(actual.length).to.equal(1)
+      const data = { title: 'xxx', content: 'yyy' }
+      return knex('posts').insert(data, '*').then(([ inserted ]) => {
+        const patch = { title: 'zzz' }
+        return Promise.all([ Post.patch(inserted.id, patch), knex('posts') ])
+          .then(([ post, actual ]) => {
+            expect(post.id).to.be.ok
+            expect(post.title).to.deep.equal(patch.title)
+            expect(post.content).to.deep.equal(data.content)
+            expect(actual.length).to.equal(1)
+          })
+      })
     })
   })
 })

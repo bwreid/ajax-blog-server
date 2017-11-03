@@ -3,59 +3,37 @@ const path = require('path')
 const uuid = require('uuid/v4')
 const env = process.env.NODE_ENV || 'development'
 const db = path.join(__dirname, '..', 'db', `${env}.json`)
-
-function _read () {
-  return JSON.parse(fs.readFileSync(db, 'utf-8'))
-}
-
-function _write (obj) {
-  fs.writeFileSync(db, JSON.stringify(obj))
-}
-
-function _byId (id) {
-  return (el) => el.id === id
-}
+const knex = require('../db/connection')
 
 function get () {
-  return _read()
+  return knex('posts')
 }
 
 function create (body) {
-  const id = uuid()
-  const posts = _read()
-  const post = { id, ...body }
-
-  posts.push(post)
-  _write(posts)
-
-  return post
+  return knex('posts')
+    .insert(body)
+    .returning('*')
+    .then(([post]) => post)
 }
 
 function find (id) {
-  const content = _read()
-  return content.find(_byId(id))
+  return knex('posts').where({ id }).first()
 }
 
 function destroy (id) {
-  const content = _read()
-  const post = content.find(_byId(id))
-  const index = content.indexOf(post)
-
-  content.splice(index, 1)
-  _write(content)
-
-  return post
+  return knex('posts')
+    .del()
+    .where({ id })
+    .returning('*')
+    .then(([ post ]) => post)
 }
 
 function patch (id, patch) {
-  const post = destroy(id)
-  const content = _read()
-  const newPost = Object.assign(post, patch)
-
-  content.push(newPost)
-  _write(content)
-
-  return newPost
+  return knex('posts')
+    .update(patch)
+    .where({ id })
+    .returning('*')
+    .then(([ post ]) => post)
 }
 
 module.exports = {

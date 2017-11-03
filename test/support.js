@@ -7,9 +7,12 @@ global.expect = chai.expect
 
 require('mocha')
 chai.use(require('chai-http'))
+chai.use(require('chai-as-promised'))
 
 global.db = path.join(__dirname, '..', 'db', 'test.json')
-const clear = () => fs.writeFileSync(db, JSON.stringify([]))
+global.knex = require('../db/connection')
+const clear = () => knex.migrate.rollback().then(() => knex.migrate.latest())
+const destroyConn = () => knex.destroy()
 
 beforeEach(clear)
-afterEach(clear)
+after(destroyConn)

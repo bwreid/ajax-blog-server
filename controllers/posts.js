@@ -2,40 +2,45 @@ const { Post } = require('../models')
 const fields = [ 'title', 'content' ]
 
 function get (req, res, next) {
-  const posts = Post.get()
-  res.json({ posts })
+  Post.get().then(posts => {
+    res.json({ posts })
+  })
 }
 
 function create (req, res, next) {
-  const result = Post.create(req.body)
-  res.status(201).json({ post: result })
+  Post.create(req.body).then(post => {
+    res.status(201).json({ post })
+  })
 }
 
 function show (req, res, next) {
-  const result = Post.find(req.params.id)
-  res.json({ post: result })
+  Post.find(req.params.id).then(post => {
+    res.json({ post })
+  })
 }
 
 function destroy (req, res, next) {
-  const result = Post.destroy(req.params.id)
-  res.json({ post: result })
+  Post.destroy(req.params.id).then(post => {
+    res.json({ post })
+  })
 }
 
 function patch (req, res, next) {
-  const result = Post.patch(req.params.id, req.body)
-  res.json({ post: result })
+  Post.patch(req.params.id, req.body).then(post => {
+    res.json({ post })
+  })
 }
 
 function exists (req, res, next) {
-  const post = Post.find(req.params.id)
+  Post.find(req.params.id).then(post => {
+    if (!post) {
+      const status = 404
+      const message = `Post with an id of ${req.params.id} was not found`
+      return next({ status, message })
+    }
 
-  if (!post) {
-    const status = 404
-    const message = `Post with an id of ${req.params.id} was not found`
-    next({ status, message })
-  }
-
-  return next()
+    return next()
+  })
 }
 
 function prune (req, res, next) {

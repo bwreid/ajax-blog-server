@@ -1,5 +1,4 @@
 const fs = require('fs')
-const uuid = require('uuid/v4')
 
 describe('post routes', function () {
   describe('GET /', function () {
@@ -74,15 +73,16 @@ describe('post routes', function () {
 
   describe('GET /:id', function () {
     it('should retrieve a specific post', function (done) {
-      const post = { id: uuid(), title: 'xxx', content: 'yyy' }
-      fs.writeFileSync(db, JSON.stringify([ post ]))
-
-      chai.request(app)
-      .get(`/posts/${post.id}`)
-      .end((err, res) => {
-        expect(res.status).to.equal(200)
-        expect(res.body.post).to.deep.equal(post)
-        done()
+      knex('posts').insert({ title: 'xxx', content: 'yyy' }, '*').then(([ post ]) => {
+        chai.request(app)
+        .get(`/posts/${post.id}`)
+        .end((err, res) => {
+          expect(res.status).to.equal(200)
+          expect(res.body.post.id).to.deep.equal(post.id)
+          expect(res.body.post.title).to.deep.equal(post.title)
+          expect(res.body.post.content).to.deep.equal(post.content)
+          done()
+        })
       })
     })
 
@@ -100,16 +100,17 @@ describe('post routes', function () {
 
   describe('DELETE /:id', function () {
     it('should destroy a specific post', function (done) {
-      const post = { id: uuid(), title: 'xxx', content: 'yyy' }
-      fs.writeFileSync(db, JSON.stringify([ post ]))
-
-      chai.request(app)
-        .delete(`/posts/${post.id}`)
-        .end((err, res) => {
-          expect(res.status).to.equal(200)
-          expect(res.body.post).to.deep.equal(post)
-          done()
-        })
+      knex('posts').insert({ title: 'xxx', content: 'yyy' }, '*').then(([ post ]) => {
+        chai.request(app)
+          .delete(`/posts/${post.id}`)
+          .end((err, res) => {
+            expect(res.status).to.equal(200)
+            expect(res.body.post.id).to.deep.equal(post.id)
+            expect(res.body.post.title).to.deep.equal(post.title)
+            expect(res.body.post.content).to.deep.equal(post.content)
+            done()
+          })
+      })
     })
 
     it('should require that the id is a valid post id', function (done) {
@@ -126,19 +127,20 @@ describe('post routes', function () {
 
   describe('PATCH /:id', function () {
     it('should partially modify an existing post', function (done) {
-      const post = { id: uuid(), title: 'xxx', content: 'yyy' }
-      fs.writeFileSync(db, JSON.stringify([ post ]))
-
-      const patch = { title: 'zzz' }
-      const expected = Object.assign(post, patch)
-      chai.request(app)
-        .patch(`/posts/${post.id}`)
-        .send(patch)
-        .end((err, res) => {
-          expect(res.status).to.equal(200)
-          expect(res.body.post).to.deep.equal(expected)
-          done()
-        })
+      knex('posts').insert({ title: 'xxx', content: 'yyy' }, '*').then(([ post ]) => {
+        const patch = { title: 'zzz' }
+        const expected = Object.assign(post, patch)
+        chai.request(app)
+          .patch(`/posts/${post.id}`)
+          .send(patch)
+          .end((err, res) => {
+            expect(res.status).to.equal(200)
+            expect(res.body.post.id).to.deep.equal(post.id)
+            expect(res.body.post.title).to.deep.equal(post.title)
+            expect(res.body.post.content).to.deep.equal(post.content)
+            done()
+          })
+      })
     })
 
     it('should require that the id is a valid post id', function (done) {
@@ -154,37 +156,39 @@ describe('post routes', function () {
     })
 
     it('should completely modify an existing post', function (done) {
-      const post = { id: uuid(), title: 'xxx', content: 'yyy' }
-      fs.writeFileSync(db, JSON.stringify([ post ]))
-
-      const patch = { title: 'zzz', tags: 'aaa' }
-      const expected = Object.assign(post, { title: 'zzz' })
-      chai.request(app)
-        .patch(`/posts/${post.id}`)
-        .send(patch)
-        .end((err, res) => {
-          expect(res.status).to.equal(200)
-          expect(res.body.post).to.deep.equal(expected)
-          done()
-        })
+      knex('posts').insert({ title: 'xxx', content: 'yyy' }, '*').then(([ post ]) => {
+        const patch = { title: 'zzz', tags: 'aaa' }
+        const expected = Object.assign(post, { title: 'zzz' })
+        chai.request(app)
+          .patch(`/posts/${post.id}`)
+          .send(patch)
+          .end((err, res) => {
+            expect(res.status).to.equal(200)
+            expect(res.body.post.id).to.deep.equal(post.id)
+            expect(res.body.post.title).to.deep.equal(post.title)
+            expect(res.body.post.content).to.deep.equal(post.content)
+            done()
+          })
+      })
     })
   })
 
   describe('PUT /:id', function () {
     it('should completely modify an existing post', function (done) {
-      const post = { id: uuid(), title: 'xxx', content: 'yyy' }
-      fs.writeFileSync(db, JSON.stringify([ post ]))
-
-      const replacement = { title: 'zzz', content: 'www' }
-      const expected = Object.assign(post, replacement)
-      chai.request(app)
-        .put(`/posts/${post.id}`)
-        .send(replacement)
-        .end((err, res) => {
-          expect(res.status).to.equal(200)
-          expect(res.body.post).to.deep.equal(expected)
-          done()
-        })
+      knex('posts').insert({ title: 'xxx', content: 'yyy' }, '*').then(([ post ]) => {
+        const replacement = { title: 'zzz', content: 'www' }
+        const expected = Object.assign(post, replacement)
+        chai.request(app)
+          .put(`/posts/${post.id}`)
+          .send(replacement)
+          .end((err, res) => {
+            expect(res.status).to.equal(200)
+            expect(res.body.post.id).to.deep.equal(post.id)
+            expect(res.body.post.title).to.deep.equal(post.title)
+            expect(res.body.post.content).to.deep.equal(post.content)
+            done()
+          })
+      })
     })
 
     it('should require that the id is a valid post id', function (done) {
@@ -200,52 +204,49 @@ describe('post routes', function () {
     })
 
     it('should ignore extra keys', function (done) {
-      const post = { id: uuid(), title: 'xxx', content: 'yyy' }
-      fs.writeFileSync(db, JSON.stringify([ post ]))
-
-      const replacement = { title: 'zzz', content: 'www', tags: 'zzz' }
-      chai.request(app)
-      .put(`/posts/${post.id}`)
-      .send(replacement)
-      .end((err, res) => {
-        expect(res.status).to.equal(200)
-        expect(res.body.post.id).to.be.ok
-        expect(res.body.post.title).to.deep.equal('zzz')
-        expect(res.body.post.content).to.deep.equal('www')
-        expect(res.body.post.tags).to.be.undefined
-        done()
+      knex('posts').insert({ title: 'xxx', content: 'yyy' }, '*').then(([ post ]) => {
+        const replacement = { title: 'zzz', content: 'www', tags: 'zzz' }
+        chai.request(app)
+        .put(`/posts/${post.id}`)
+        .send(replacement)
+        .end((err, res) => {
+          expect(res.status).to.equal(200)
+          expect(res.body.post.id).to.be.ok
+          expect(res.body.post.title).to.deep.equal('zzz')
+          expect(res.body.post.content).to.deep.equal('www')
+          expect(res.body.post.tags).to.be.undefined
+          done()
+        })
       })
     })
 
     it('should require that the `content` field is present', function (done) {
-      const post = { id: uuid(), title: 'xxx', content: 'yyy' }
-      fs.writeFileSync(db, JSON.stringify([ post ]))
-
-      const replacement = { title: 'zzz' }
-      chai.request(app)
-      .put(`/posts/${post.id}`)
-      .send(replacement)
-      .end((err, res) => {
-        expect(res.status).to.equal(400)
-        expect(res.body.error).to.be.ok
-        expect(res.body.error.message).to.be.ok
-        done()
+      knex('posts').insert({ title: 'xxx', content: 'yyy' }, '*').then(([ post ]) => {
+        const replacement = { title: 'zzz' }
+        chai.request(app)
+        .put(`/posts/${post.id}`)
+        .send(replacement)
+        .end((err, res) => {
+          expect(res.status).to.equal(400)
+          expect(res.body.error).to.be.ok
+          expect(res.body.error.message).to.be.ok
+          done()
+        })
       })
     })
 
     it('should require that the `title` field is present', function (done) {
-      const post = { id: uuid(), title: 'xxx', content: 'yyy' }
-      fs.writeFileSync(db, JSON.stringify([ post ]))
-
-      const replacement = { content: 'www' }
-      chai.request(app)
-      .put(`/posts/${post.id}`)
-      .send(replacement)
-      .end((err, res) => {
-        expect(res.status).to.equal(400)
-        expect(res.body.error).to.be.ok
-        expect(res.body.error.message).to.be.ok
-        done()
+      knex('posts').insert({ title: 'xxx', content: 'yyy' }, '*').then(([ post ]) => {
+        const replacement = { content: 'www' }
+        chai.request(app)
+        .put(`/posts/${post.id}`)
+        .send(replacement)
+        .end((err, res) => {
+          expect(res.status).to.equal(400)
+          expect(res.body.error).to.be.ok
+          expect(res.body.error.message).to.be.ok
+          done()
+        })
       })
     })
   })
